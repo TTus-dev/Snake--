@@ -10,7 +10,7 @@ sf::Image Asset_container[15];
 class Game_object
 {
 public:
-    int x, y;
+    int x, y, spr_id;
     sf::Texture sprite;
     sf::RectangleShape hitbox;
 };
@@ -48,8 +48,9 @@ class Segment : public Game_object
 public:
     int direction;
     Segment *next;
-    Segment(int dir, int tx, int ty, int texture_id)
+    Segment(int dir, int tx, int ty, int texture_id = -1)
     {
+        spr_id = texture_id;
         direction = dir;
         x = tx;
         y = ty;
@@ -78,48 +79,59 @@ public:
         head->direction = x;
     }
 
-    void update_sprites()
+    void _update_helper(int prev_dir, Segment* _iter) {
+        if (prev_dir != _iter->direction) {
+            if (prev_dir == 1) {
+                if (_iter->direction == 2) { _iter->sprite.loadFromImage(Asset_container[5]); }
+                else { _iter->sprite.loadFromImage(Asset_container[4]); }
+            }
+
+            else if (prev_dir == 2) {
+                if (_iter->direction == 3) { _iter->sprite.loadFromImage(Asset_container[4]); }
+                else { _iter->sprite.loadFromImage(Asset_container[6]); }
+            }
+
+            else if (prev_dir == 3) {
+                if (_iter->direction == 2) { _iter->sprite.loadFromImage(Asset_container[7]); }
+                else { _iter->sprite.loadFromImage(Asset_container[6]); }
+            }
+
+            else if (prev_dir == 4) {
+                if (_iter->direction == 3) { _iter->sprite.loadFromImage(Asset_container[5]); }
+                else { _iter->sprite.loadFromImage(Asset_container[7]); }
+            }
+        }
+        else
+        {
+            if (_iter->direction == 1 || _iter->direction == 3) { _iter->sprite.loadFromImage(Asset_container[13]); }
+            else { _iter->sprite.loadFromImage(Asset_container[12]); }
+        }
+    }
+
+    void update_sprites(bool grow_state)
     {
         head->sprite.loadFromImage(Asset_container[head->direction - 1]);
         head->hitbox.setTexture(&head->sprite);
         Segment* _iter = head->next;
         int prev_dir = head->direction;
-        while (_iter->next != NULL) {
-            if (prev_dir != _iter->direction) {
-                if (prev_dir == 1) {
-                    if (_iter->direction == 2) { _iter->sprite.loadFromImage(Asset_container[5]); }
-                    else { _iter->sprite.loadFromImage(Asset_container[4]); }
-                }
-
-                else if (prev_dir == 2) {
-                    if (_iter->direction == 3) { _iter->sprite.loadFromImage(Asset_container[4]); }
-                    else { _iter->sprite.loadFromImage(Asset_container[6]); }
-                }
-
-                else if (prev_dir == 3) {
-                    if (_iter->direction == 2) { _iter->sprite.loadFromImage(Asset_container[7]); }
-                    else { _iter->sprite.loadFromImage(Asset_container[6]); }
-                }
-
-                else if (prev_dir == 4) {
-                    if (_iter->direction == 3) { _iter->sprite.loadFromImage(Asset_container[5]); }
-                    else { _iter->sprite.loadFromImage(Asset_container[7]); }
-                }
+        if (!grow_state) {
+            while (_iter->next != NULL) {
+                _update_helper(prev_dir, _iter);
+                _iter->hitbox.setTexture(&_iter->sprite);
+                prev_dir = _iter->direction;
+                _iter = _iter->next;
             }
-            else
-            {
-                if (_iter->direction == 1 || _iter->direction == 3) { _iter->sprite.loadFromImage(Asset_container[13]); }
-                else { _iter->sprite.loadFromImage(Asset_container[12]); }
-            }
+            _iter->sprite.loadFromImage(Asset_container[prev_dir + 7]);
+            _iter->hitbox.setTexture(&_iter->sprite);
+        }
+        else {
+            _update_helper(prev_dir, _iter);
             _iter->hitbox.setTexture(&_iter->sprite);
             prev_dir = _iter->direction;
-            _iter = _iter->next;
         }
-        _iter->sprite.loadFromImage(Asset_container[prev_dir + 7]);
-        _iter->hitbox.setTexture(&_iter->sprite);
     }
 
-    void move()
+    void move(bool grow_state)
     {
         int old_x = head->x;
         int old_y = head->y;
@@ -147,11 +159,18 @@ public:
             break;
         }
         Segment* _iter = head->next;
-        while (_iter != NULL) {
+        if (!grow_state) {
+            while (_iter != NULL) {
+                swapper(&_iter->x, &old_x);
+                swapper(&_iter->y, &old_y);
+                swapper(&_iter->direction, &old_dir);
+                _iter = _iter->next;
+            }
+        }
+        else {
             swapper(&_iter->x, &old_x);
             swapper(&_iter->y, &old_y);
             swapper(&_iter->direction, &old_dir);
-            _iter = _iter->next;
         }
     }
 
@@ -163,6 +182,18 @@ public:
             window_ptr->draw(_tmp->hitbox);
             _tmp = _tmp->next;
         }
+    }
+
+    void grow()
+    {
+        Segment* _tmp = head->next;
+        head->next = new Segment(_tmp->direction, _tmp->x, _tmp->y, _tmp->spr_id);
+        head->next->next = _tmp;
+    }
+
+    bool eat(Apple food)
+    {
+        return food.x == head->x && food.y == head->y;
     }
 };
 
@@ -190,26 +221,25 @@ int main()
 {
     Load_sprites();
     sf::RenderWindow window(sf::VideoMode(800, 600), "SFML works!");
+    window.setKeyRepeatEnabled(false);
+
     Apple* main_apple = new Apple;
     Snake* main_snake = init_snake();
 
     sf::Clock clock;
-    float timer = 0, delay = 0.1;
+    float timer = 0, delay = 0.2;
 
     int next_dir = 2, old_dir = 2;
+
+    bool isPaused = false;
+    bool escState = false;
+    bool growing = false;
 
     while (window.isOpen())
     {
         float time = clock.getElapsedTime().asSeconds();
         clock.restart();
         timer += time;
-
-        if (timer > delay) {
-            timer = 0;
-            main_snake->update_sprites();
-            main_snake->move();
-            old_dir = main_snake->direction;
-        }
 
         sf::Event event;
         while (window.pollEvent(event))
@@ -232,6 +262,31 @@ int main()
 
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::Down) || sf::Keyboard::isKeyPressed(sf::Keyboard::S)) {
             if (old_dir != 1) { main_snake->set_dir(3); }
+        }
+
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Escape) && !escState)
+        {
+            if (isPaused) { isPaused = false; }
+            else { isPaused = true; }
+            escState = true;
+        }
+        else if (!sf::Keyboard::isKeyPressed(sf::Keyboard::Escape)) { escState = false; }
+
+        if (timer > delay && !isPaused) {
+            timer = 0;
+            if (main_snake->eat(*main_apple))
+            {
+                main_apple->Apple_gen();
+                main_snake->grow();
+                main_snake->update_sprites(true);
+                main_snake->move(true);
+            }
+            else
+            { 
+                main_snake->update_sprites(false);
+                main_snake->move(false);
+            }
+            old_dir = main_snake->direction;
         }
 
         window.clear();
