@@ -36,13 +36,16 @@ void Snake::_update_helper(int prev_dir, Segment* _iter, sf::Image assets[])
     }
 }
 
-void Snake::update_sprites(bool grow_state, sf::Image assets[]) {
+void Snake::update_sprites(bool grow_state, sf::Image assets[])
+{
     head->sprite.loadFromImage(assets[head->direction - 1]);
     head->hitbox.setTexture(&head->sprite);
     Segment* _iter = head->next;
     int prev_dir = head->direction;
-    if (!grow_state) {
-        while (_iter->next != NULL) {
+    if (!grow_state)
+    {
+        while (_iter->next != NULL)
+        {
             _update_helper(prev_dir, _iter, assets);
             _iter->hitbox.setTexture(&_iter->sprite);
             prev_dir = _iter->direction;
@@ -51,7 +54,8 @@ void Snake::update_sprites(bool grow_state, sf::Image assets[]) {
         _iter->sprite.loadFromImage(assets[prev_dir + 7]);
         _iter->hitbox.setTexture(&_iter->sprite);
     }
-    else {
+    else
+    {
         _update_helper(prev_dir, _iter, assets);
         _iter->hitbox.setTexture(&_iter->sprite);
         prev_dir = _iter->direction;
@@ -86,15 +90,18 @@ void Snake::move(bool grow_state)
         break;
     }
     Segment* _iter = head->next;
-    if (!grow_state) {
-        while (_iter != NULL) {
+    if (!grow_state)
+    {
+        while (_iter != NULL)
+        {
             swapper(&_iter->x, &old_x);
             swapper(&_iter->y, &old_y);
             swapper(&_iter->direction, &old_dir);
             _iter = _iter->next;
         }
     }
-    else {
+    else
+    {
         swapper(&_iter->x, &old_x);
         swapper(&_iter->y, &old_y);
         swapper(&_iter->direction, &old_dir);
@@ -104,7 +111,8 @@ void Snake::move(bool grow_state)
 void Snake::draw_snake(sf::RenderWindow* window_ptr)
 {
     Segment* _tmp = head;
-    while (_tmp != NULL) {
+    while (_tmp != NULL)
+    {
         _tmp->hitbox.setPosition(_tmp->x * 25, _tmp->y * 25);
         window_ptr->draw(_tmp->hitbox);
         _tmp = _tmp->next;
@@ -118,9 +126,9 @@ void Snake::grow(sf::Image assets[])
     head->next->next = _tmp;
 }
 
-bool Snake::eat(Apple food)
+bool Snake::eat(int foodx, int foody)
 {
-    return food.x == head->x && food.y == head->y;
+    return foodx == head->x && foody == head->y;
 }
 
 void Snake::swapper(int* x, int* y)
@@ -129,4 +137,16 @@ void Snake::swapper(int* x, int* y)
     _tmp = *x;
     *x = *y;
     *y = _tmp;
+}
+
+bool Snake::in_snake(int x, int y)
+{
+    Segment* _tmp = head;
+    while (_tmp != NULL)
+    {
+        if (_tmp->x == x, _tmp->y == y)
+            return true;
+        _tmp = _tmp->next;
+    }
+    return false;
 }

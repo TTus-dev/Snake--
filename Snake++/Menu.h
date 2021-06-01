@@ -3,13 +3,13 @@
 
 class Menu
 {
+	sf::Font main_font;
+	sf::Text options_array[3];
 public:
 	int selected_option;
-	sf::Font main_font;
-	sf::Text test;
-	sf::Text options_array[3];
-	Menu(int window_x, int window_y);
-	void draw(sf::RenderWindow *window);
-	void option_up();
-	void option_down();
+	Menu(sf::RenderWindow* window);
+	void draw(sf::RenderWindow* window);
+	void change_selected(int n);
+	void mouse_hover(sf::Mouse mouse, sf::RenderWindow* window);
+	void clear_selected();
 };

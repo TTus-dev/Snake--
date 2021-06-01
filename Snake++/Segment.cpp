@@ -1,6 +1,6 @@
 #include "Segment.h"
 
-Segment::Segment(int dir, int tx, int ty, sf::Image assets[], int texture_id)
+Segment::Segment(int dir, int tx, int ty, sf::Image assets[], int texture_id )
 {
     spr_id = texture_id;
     direction = dir;
