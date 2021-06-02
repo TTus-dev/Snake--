@@ -1,5 +1,4 @@
 #include "Snake.h"
-#include <iostream>
 
 void Snake::set_dir(int x)
 {
