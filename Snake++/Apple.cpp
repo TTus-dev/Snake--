@@ -13,7 +13,7 @@ void Apple::Apple_gen(Snake* snake)
     {
         x = rand() % 31;
         y = rand() % 23;
-    } while (snake->in_snake(x, y));
+    } while (snake->in_snake(1, x, y));
 }
 
 void Apple::draw_Apple(sf::RenderWindow* window_ptr)

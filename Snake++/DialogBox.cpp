@@ -3,24 +3,33 @@
 DialogBox::DialogBox(sf::RenderWindow *window, int type)
 {
 	main_font.loadFromFile("./Assets/Fonts/arial.ttf");
-	if (type == 1) { dialog_options_array[0].setString("Wznów"); }
-	else { dialog_options_array[0].setString("Restart"); }
+	if (type == 1)
+	{
+		dialog_options_array[2].setString("Wznów");
+		dialog_options_array[0].setString("Pauza");
+	}
+	else
+	{
+		dialog_options_array[2].setString("Restart");
+		dialog_options_array[0].setString("Koniec gry!");
+	}
+	dialog_options_array[3].setString(L"Menu g³ówne");
+	dialog_options_array[0].setCharacterSize(72);
 
-	dialog_options_array[1].setString(L"Menu g³ówne");
-
-	for (int i = 0 ; i < 2; i++)
+	for (int i = 0 ; i < 4; i++)
 	{
 		dialog_options_array[i].setFillColor(sf::Color::White);
 		dialog_options_array[i].setFont(main_font);
 		sf::FloatRect bnds = dialog_options_array[i].getLocalBounds();
 		dialog_options_array[i].setOrigin(bnds.width / 2.0f, bnds.height / 2.0f);
-		dialog_options_array[i].setPosition(window->getSize().x / 2, window->getSize().y / 4 * (i + 1.5f));
+		dialog_options_array[i].setPosition(window->getSize().x / 2, window->getSize().y / 4.7 * (i + 0.7f));
 	}
 
 	background.setSize(sf::Vector2f(window->getSize().x, window->getSize().y));
 	background.setFillColor(sf::Color(20, 20, 20, 100));
 
-	container.setSize(sf::Vector2f(window->getSize().x / 3.f, window->getSize().y));
+	float title_width = dialog_options_array[0].getGlobalBounds().width;
+	container.setSize(sf::Vector2f(title_width + 100 , window->getSize().y));
 	container.setFillColor(sf::Color(20, 20, 20, 200));
 	container.setPosition(window->getSize().x / 2 - container.getSize().x / 2 , 0.f);
 }
@@ -40,7 +49,7 @@ void DialogBox::render(sf::RenderWindow* window)
 
 void DialogBox::mouse_hover(sf::Mouse mouse, sf::RenderWindow* window)
 {
-	for (int i = 0; i < 2; i++)
+	for (int i = 2; i < 4; i++)
 	{
 		if (dialog_options_array[i].getGlobalBounds().contains(mouse.getPosition(*window).x, mouse.getPosition(*window).y))
 		{
@@ -61,9 +70,20 @@ void DialogBox::change_selected(int n)
 
 void DialogBox::clear_selected()
 {
-	for (int i = 0; i < 3; i++)
+	for (int i = 2; i < 4; i++)
 	{
 		dialog_options_array[i].setFillColor(sf::Color::White);
 	}
 	selected_option = -1;
+}
+
+void DialogBox::set_subtitle(sf::RenderWindow* window, int score, int highscore)
+{
+	if (score > highscore && highscore > 0)
+		dialog_options_array[1].setString("Nowy rekord: " + std::to_string(score));
+	else
+		dialog_options_array[1].setString("Twój wynik: " + std::to_string(score));
+	sf::FloatRect bnds = dialog_options_array[1].getLocalBounds();
+	dialog_options_array[1].setOrigin(bnds.width / 2.0f, bnds.height / 2.0f);
+	dialog_options_array[1].setPosition(window->getSize().x / 2, window->getSize().y / 4.7 * (1 + 0.7f));
 }

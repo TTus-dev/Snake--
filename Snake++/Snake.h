@@ -14,5 +14,5 @@ public:
     void grow(sf::Image asset[]);
     bool eat(int foodx, int foody);
     void swapper(int* swap1, int* swap2);
-    bool in_snake(int x, int y);
+    bool in_snake(int mode, int x = -1, int y = -1);
 };

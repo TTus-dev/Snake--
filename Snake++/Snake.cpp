@@ -1,4 +1,5 @@
 #include "Snake.h"
+#include <iostream>
 
 void Snake::set_dir(int x)
 {
@@ -139,13 +140,34 @@ void Snake::swapper(int* x, int* y)
     *y = _tmp;
 }
 
-bool Snake::in_snake(int x, int y)
+bool Snake::in_snake(int mode, int x, int y)
 {
-    Segment* _tmp = head;
+    Segment* _tmp;
+    if (mode == 0)
+    {
+        _tmp = head->next;
+    }
+    else
+    {
+        _tmp = head;
+    }
+
     while (_tmp != NULL)
     {
-        if (_tmp->x == x, _tmp->y == y)
-            return true;
+        if (mode == 0)
+        {
+            if (_tmp->x == head->x && _tmp->y == head->y)
+            {
+                return true;
+            }
+        }
+        else
+        {
+            if (_tmp->x == x && _tmp->y == y)
+            {
+                return true;
+            }
+        }
         _tmp = _tmp->next;
     }
     return false;
